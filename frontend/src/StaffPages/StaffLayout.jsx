@@ -1,15 +1,16 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
+  UserPlus,
   Car,
-  Wrench,
   ShoppingCart,
-  History,
-  Star,
+  Users,
+  Search,
+  FileText,
   LogOut,
 } from "lucide-react";
 
-const UserLayout = () => {
+const StaffLayout = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -18,11 +19,22 @@ const UserLayout = () => {
   };
 
   const menu = [
-    { name: "Dashboard", path: "/user", icon: LayoutDashboard },
-    { name: "Book Appointment", path: "/user/bookappointment", icon: Car },
-    { name: "Request part", path: "/user/requestpart", icon: Wrench },
-    { name: "Purchase History", path: "/user/history", icon: ShoppingCart },
-    { name: "Loyalty", path: "/user/loyalty", icon: Star },
+    { name: "Dashboard", path: "/staff", icon: LayoutDashboard },
+
+    // 6 - register customer
+    { name: "Add Customer", path: "/staff/addcustomer", icon: UserPlus },
+
+    // 7 - sell parts + invoice
+    { name: "Sales & Invoice", path: "/staff/salesinvoice", icon: ShoppingCart },
+
+    // 8 - view customer details/history
+    { name: "Customers", path: "/staff/customers", icon: Users },
+
+    // 9 - reports
+    { name: "Reports", path: "/staff/reports", icon: FileText },
+
+    // 10 - search customers
+    { name: "Customer details", path: "/staff/customerdetails", icon: Search },
   ];
 
   return (
@@ -31,17 +43,17 @@ const UserLayout = () => {
       {/* SIDEBAR */}
       <aside className="w-[260px] fixed left-0 top-0 h-screen bg-white border-r flex flex-col">
 
-        {/* Logo */}
+        {/* LOGO */}
         <div className="p-5 border-b">
           <h1 className="text-xl font-black text-blue-600">
-            AutoPart User
+            AutoPart Staff
           </h1>
           <p className="text-xs text-slate-400">
-            Vehicle Service Portal
+            Sales & Customer System
           </p>
         </div>
 
-        {/* Menu */}
+        {/* MENU */}
         <nav className="flex-1 p-3 space-y-1">
           {menu.map((item) => {
             const Icon = item.icon;
@@ -66,7 +78,7 @@ const UserLayout = () => {
           })}
         </nav>
 
-        {/* Logout */}
+        {/* LOGOUT */}
         <div className="p-4 border-t">
           <button
             onClick={handleLogout}
@@ -76,6 +88,7 @@ const UserLayout = () => {
             Logout
           </button>
         </div>
+
       </aside>
 
       {/* MAIN */}
@@ -84,11 +97,11 @@ const UserLayout = () => {
         {/* HEADER */}
         <header className="h-16 bg-white border-b flex items-center justify-between px-6">
           <h2 className="font-semibold text-slate-700">
-            Welcome Back 👋
+            Staff Dashboard 👨‍🔧
           </h2>
 
           <div className="text-sm text-slate-500">
-            Auto Service Dashboard
+            Vehicle Sales System
           </div>
         </header>
 
@@ -102,4 +115,4 @@ const UserLayout = () => {
   );
 };
 
-export default UserLayout;
+export default StaffLayout;
