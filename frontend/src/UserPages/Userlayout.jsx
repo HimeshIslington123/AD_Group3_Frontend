@@ -1,16 +1,15 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
-  Users,
-  Boxes,
-  Truck,
-  BarChart3,
-  FileText,
-  Plus,
+  Car,
+  Wrench,
+  ShoppingCart,
+  History,
+  Star,
   LogOut,
 } from "lucide-react";
 
-const AdminLayout = () => {
+const UserLayout = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -19,16 +18,15 @@ const AdminLayout = () => {
   };
 
   const menu = [
-    { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
-    { name: "Staff Management", path: "/admin/staffmanagement", icon: Users },
-    { name: "Inventory", path: "/admin/inventorymanagement", icon: Boxes },
-    { name: "Vendors", path: "/admin/vendormanagement", icon: Truck },
-    { name: "Reports", path: "/admin/reports", icon: BarChart3 },
-    { name: "Invoices", path: "/admin/invoices", icon: FileText },
+    { name: "Dashboard", path: "/user", icon: LayoutDashboard },
+    { name: "My Garage", path: "/user/garage", icon: Car },
+    { name: "Services", path: "/user/services", icon: Wrench },
+    { name: "Purchase History", path: "/user/history", icon: ShoppingCart },
+    { name: "Loyalty", path: "/user/loyalty", icon: Star },
   ];
 
   return (
-    <div className="flex min-h-screen bg-[#f8f9ff]">
+    <div className="flex min-h-screen bg-[#f5f7ff]">
 
       {/* SIDEBAR */}
       <aside className="w-[260px] fixed left-0 top-0 h-screen bg-white border-r flex flex-col">
@@ -36,10 +34,10 @@ const AdminLayout = () => {
         {/* Logo */}
         <div className="p-5 border-b">
           <h1 className="text-xl font-black text-blue-600">
-            AutoPart Admin
+            AutoPart User
           </h1>
           <p className="text-xs text-slate-400">
-            Inventory & Sales System
+            Vehicle Service Portal
           </p>
         </div>
 
@@ -68,14 +66,8 @@ const AdminLayout = () => {
           })}
         </nav>
 
-        {/* Bottom Actions */}
-        <div className="p-4 border-t space-y-2">
-
-          <button className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg font-semibold">
-            <Plus size={18} />
-            Add Part
-          </button>
-
+        {/* Logout */}
+        <div className="p-4 border-t">
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 rounded-lg text-sm"
@@ -83,25 +75,24 @@ const AdminLayout = () => {
             <LogOut size={18} />
             Logout
           </button>
-
         </div>
       </aside>
 
-      {/* MAIN CONTENT */}
+      {/* MAIN */}
       <div className="flex-1 ml-[260px]">
 
         {/* HEADER */}
-        <header className="h-16 bg-white border-b flex items-center justify-between px-6 sticky top-0 z-40">
+        <header className="h-16 bg-white border-b flex items-center justify-between px-6">
           <h2 className="font-semibold text-slate-700">
-            Admin Dashboard
+            Welcome Back 👋
           </h2>
 
           <div className="text-sm text-slate-500">
-            AutoPart System
+            Auto Service Dashboard
           </div>
         </header>
 
-        {/* PAGE CONTENT */}
+        {/* CONTENT */}
         <main className="p-6">
           <Outlet />
         </main>
@@ -111,4 +102,4 @@ const AdminLayout = () => {
   );
 };
 
-export default AdminLayout;
+export default UserLayout;
