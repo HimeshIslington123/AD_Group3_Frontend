@@ -10,7 +10,7 @@ const Login = () => {
     console.log("Email:", email);
     console.log("Password:", password);
 
-    // 👉 later: connect backend here
+    // later: connect backend here
   };
 
   return (
