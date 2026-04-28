@@ -1,6 +1,39 @@
-import React from "react";
+import React, { useState } from "react";
+import axios from "axios";
 
 const Register = () => {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5216/api/auth/register",
+        {
+          fullName,
+          email,
+          password
+        }
+      );
+
+      console.log(response.data);
+      alert("Registered successfully");
+
+    } catch (error) {
+      console.error(error);
+
+   
+      if (error.response) {
+        alert(error.response.data);
+      } else {
+        alert("Something went wrong");
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-md bg-card p-8 rounded-2xl shadow-lg border border-border">
@@ -9,37 +42,36 @@ const Register = () => {
           Create Account
         </h2>
 
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           
           <input
             type="text"
             placeholder="Full Name"
-            className="w-full p-3 border border-border rounded-lg focus:ring-2 focus:ring-primary"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className="w-full p-3 border border-border rounded-lg"
           />
 
           <input
             type="email"
             placeholder="Email"
-            className="w-full p-3 border border-border rounded-lg focus:ring-2 focus:ring-primary"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-3 border border-border rounded-lg"
           />
 
           <input
             type="password"
             placeholder="Password"
-            className="w-full p-3 border border-border rounded-lg focus:ring-2 focus:ring-primary"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-3 border border-border rounded-lg"
           />
 
-          <button className="w-full bg-primary text-white py-3 rounded-lg hover:bg-primaryLight transition">
+          <button className="w-full bg-primary text-white py-3 rounded-lg">
             Register
           </button>
         </form>
-
-        <p className="text-sm text-center mt-4 text-textSecondary">
-          Already have an account?{" "}
-          <span className="text-primary cursor-pointer font-medium">
-            Login
-          </span>
-        </p>
       </div>
     </div>
   );
