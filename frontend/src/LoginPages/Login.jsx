@@ -4,13 +4,40 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault(); // prevent reload
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    console.log("Email:", email);
-    console.log("Password:", password);
+    try {
+      const response = await fetch("http://localhost:5216/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email,
+          password
+        })
+      });
 
-    // 👉 later: connect backend here
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message || "Login failed");
+        return;
+      }
+
+     
+      localStorage.setItem("token", data.token);
+
+      console.log("TOKEN:", data.token);
+
+      alert("Login successful");
+
+      
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong");
+    }
   };
 
   return (
@@ -29,7 +56,7 @@ const Login = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full mt-1 p-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full mt-1 p-3 border border-border rounded-lg"
               placeholder="Enter your email"
             />
           </div>
@@ -40,14 +67,14 @@ const Login = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full mt-1 p-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full mt-1 p-3 border border-border rounded-lg"
               placeholder="Enter your password"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-primary text-white py-3 rounded-lg hover:bg-primaryLight transition"
+            className="w-full bg-primary text-white py-3 rounded-lg"
           >
             Login
           </button>
