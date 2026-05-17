@@ -1,204 +1,262 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+
+const BASE_URL = "http://localhost:51391/api";
+const PART_API = `${BASE_URL}/part`;
+const VENDOR_API = `${BASE_URL}/vendor`;
 
 const InventoryManagement = () => {
-  const [search, setSearch] = useState("");
-  const [sort, setSort] = useState("newest");
-  const [stockFilter, setStockFilter] = useState("all");
+  const [parts, setParts] = useState([]);
+  const [vendors, setVendors] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [editId, setEditId] = useState(null);
+  
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    price: 0,
+    stockQuantity: 0,
+    vendorId: "",
+  });
 
-  const [items] = useState([
-    {
-      id: 1,
-      name: "Brake Pads",
-      sku: "BP-77421",
-      price: 124.5,
-      stock: 6,
-      supplier: "Global Friction",
-      createdAt: 1,
-    },
-    {
-      id: 2,
-      name: "Oil Filter",
-      sku: "OF-990",
-      price: 18.99,
-      stock: 142,
-      supplier: "Prime Filtration",
-      createdAt: 2,
-    },
-    {
-      id: 3,
-      name: "Spark Plug",
-      sku: "SP-IR-4PK",
-      price: 56.0,
-      stock: 18,
-      supplier: "Spark Point",
-      createdAt: 3,
-    },
-    {
-      id: 4,
-      name: "Timing Belt",
-      sku: "TB-V6-HDX",
-      price: 89.75,
-      stock: 48,
-      supplier: "Transmission Pro",
-      createdAt: 4,
-    },
-  ]);
+  const [purchaseModal, setPurchaseModal] = useState({
+    isOpen: false,
+    partId: null,
+    quantity: 0
+  });
 
-  // FILTER + SEARCH + STOCK + SORT
-  const filteredItems = items
-    .filter((item) => {
-      const matchesSearch =
-        item.name.toLowerCase().includes(search.toLowerCase()) ||
-        item.sku.toLowerCase().includes(search.toLowerCase());
+  const getHeaders = () => ({
+    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+  });
 
-      const matchesStock =
-        stockFilter === "all"
-          ? true
-          : stockFilter === "low"
-          ? item.stock < 20
-          : item.stock >= 20;
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [partsRes, vendorsRes] = await Promise.all([
+        axios.get(PART_API, getHeaders()),
+        axios.get(VENDOR_API, getHeaders())
+      ]);
+      setParts(partsRes.data);
+      setVendors(vendorsRes.data);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to fetch data. Make sure you are logged in as Admin.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      return matchesSearch && matchesStock;
-    })
-    .sort((a, b) => {
-      if (sort === "newest") return b.createdAt - a.createdAt;
-      if (sort === "oldest") return a.createdAt - b.createdAt;
-      return 0;
-    });
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: name === 'price' || name === 'stockQuantity' || name === 'vendorId' ? Number(value) : value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      if (isEdit) {
+        await axios.put(`${PART_API}/${editId}`, { ...form, id: editId }, getHeaders());
+        alert("Part updated successfully");
+      } else {
+        await axios.post(PART_API, form, getHeaders());
+        alert("Part created successfully");
+      }
+      setIsModalOpen(false);
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.message || "Operation failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this part?")) return;
+    try {
+      await axios.delete(`${PART_API}/${id}`, getHeaders());
+      fetchData();
+    } catch (err) {
+      alert("Delete failed");
+    }
+  };
+
+  const handlePurchase = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${PART_API}/${purchaseModal.partId}/purchase`, purchaseModal.quantity, {
+        headers: { 
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json"
+        }
+      });
+      alert("Stock updated successfully");
+      setPurchaseModal({ isOpen: false, partId: null, quantity: 0 });
+      fetchData();
+    } catch (err) {
+        console.error(err);
+      alert("Purchase failed");
+    }
+  };
 
   return (
-    <div className="space-y-8">
-
-      {/* HEADER */}
-      <div className="flex justify-between items-end">
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">
-            Inventory Management
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Real-time tracking of vehicle components
-          </p>
+          <h1 className="text-3xl font-bold text-slate-800">Inventory Management</h1>
+          <p className="text-slate-500">Manage vehicle parts and stock levels</p>
         </div>
-
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">
-          Export CSV
+        <button
+          onClick={() => {
+            setIsEdit(false);
+            setForm({ name: "", description: "", price: 0, stockQuantity: 0, vendorId: vendors[0]?.id || "" });
+            setIsModalOpen(true);
+          }}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+        >
+          + Add Part
         </button>
       </div>
 
-      {/* FILTER BAR */}
-      <div className="bg-white p-4 rounded-xl border shadow-sm flex flex-col md:flex-row gap-4 md:items-center justify-between">
-
-        {/* SEARCH */}
-        <input
-          type="text"
-          placeholder="Search by name or SKU..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full md:w-1/3 px-4 py-2 border rounded-lg text-sm"
-        />
-
-        {/* DROPDOWNS */}
-        <div className="flex gap-3 flex-wrap">
-
-          {/* SORT */}
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            className="px-3 py-2 border rounded-lg text-sm bg-white"
-          >
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-          </select>
-
-          {/* STOCK FILTER */}
-          <select
-            value={stockFilter}
-            onChange={(e) => setStockFilter(e.target.value)}
-            className="px-3 py-2 border rounded-lg text-sm bg-white"
-          >
-            <option value="all">All Stock</option>
-            <option value="low">Low Stock</option>
-            <option value="high">High Stock</option>
-          </select>
-
-        </div>
-
-      </div>
-
-      {/* STATS */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-
-        <div className="bg-white p-6 rounded-xl border shadow-sm">
-          <p className="text-sm text-slate-500">Total SKU Items</p>
-          <h2 className="text-2xl font-bold">14,208</h2>
-        </div>
-
-        <div className="bg-white p-6 rounded-xl border shadow-sm">
-          <p className="text-sm text-slate-500">Low Stock Alerts</p>
-          <h2 className="text-2xl font-bold text-amber-500">24</h2>
-        </div>
-
-        <div className="bg-white p-6 rounded-xl border shadow-sm">
-          <p className="text-sm text-slate-500">Inventory Value</p>
-          <h2 className="text-2xl font-bold">$1.24M</h2>
-        </div>
-
-        <div className="bg-white p-6 rounded-xl border shadow-sm">
-          <p className="text-sm text-slate-500">Pending Shipments</p>
-          <h2 className="text-2xl font-bold">156</h2>
-        </div>
-
-      </div>
-
-      {/* TABLE */}
-      <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
-
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <table className="w-full text-left">
-
-          <thead className="bg-slate-50 text-sm text-slate-500">
-            <tr>
-              <th className="p-4">Part</th>
-              <th className="p-4">SKU</th>
-              <th className="p-4">Price</th>
-              <th className="p-4">Stock</th>
-              <th className="p-4">Supplier</th>
-              <th className="p-4">Actions</th>
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-200">
+              <th className="p-4 font-semibold text-slate-700">Part Name</th>
+              <th className="p-4 font-semibold text-slate-700">Vendor</th>
+              <th className="p-4 font-semibold text-slate-700">Price</th>
+              <th className="p-4 font-semibold text-slate-700">Stock</th>
+              <th className="p-4 font-semibold text-slate-700 text-right">Actions</th>
             </tr>
           </thead>
-
-          <tbody className="text-sm">
-
-            {filteredItems.map((item) => (
-              <tr key={item.id} className="border-t hover:bg-slate-50">
-
-                <td className="p-4 font-medium">{item.name}</td>
-                <td className="p-4">{item.sku}</td>
-                <td className="p-4">${item.price}</td>
-
-                <td
-                  className={`p-4 font-semibold ${
-                    item.stock < 20 ? "text-red-500" : "text-green-600"
-                  }`}
-                >
-                  {item.stock}
-                </td>
-
-                <td className="p-4">{item.supplier}</td>
-
-                <td className="p-4">
-                  <button className="text-blue-600 mr-3">Edit</button>
-                  <button className="text-red-600">Delete</button>
-                </td>
-
-              </tr>
-            ))}
-
+          <tbody className="divide-y divide-slate-100">
+            {parts.length === 0 ? (
+              <tr><td colSpan="5" className="p-10 text-center text-slate-500">No parts found.</td></tr>
+            ) : (
+              parts.map((p) => (
+                <tr key={p.id} className="hover:bg-slate-50">
+                  <td className="p-4 font-medium text-slate-800">{p.name}</td>
+                  <td className="p-4 text-slate-600">{p.vendor?.name || "N/A"}</td>
+                  <td className="p-4 text-slate-600">${p.price}</td>
+                  <td className={`p-4 font-bold ${p.stockQuantity < 10 ? 'text-red-500' : 'text-green-600'}`}>
+                    {p.stockQuantity}
+                  </td>
+                  <td className="p-4 text-right space-x-3">
+                    <button 
+                        onClick={() => setPurchaseModal({ isOpen: true, partId: p.id, quantity: 10 })}
+                        className="text-amber-600 hover:text-amber-800 font-medium"
+                    >
+                        Purchase
+                    </button>
+                    <button 
+                        onClick={() => {
+                            setIsEdit(true);
+                            setEditId(p.id);
+                            setForm({
+                                name: p.name,
+                                description: p.description,
+                                price: p.price,
+                                stockQuantity: p.stockQuantity,
+                                vendorId: p.vendorId
+                            });
+                            setIsModalOpen(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                        Edit
+                    </button>
+                    <button 
+                        onClick={() => handleDelete(p.id)}
+                        className="text-red-600 hover:text-red-800 font-medium"
+                    >
+                        Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
-
         </table>
-
       </div>
 
+      {/* Main Form Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-slate-800">{isEdit ? "Edit Part" : "Add New Part"}</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
+            </div>
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Name</label>
+                <input name="name" value={form.name} onChange={handleChange} className="w-full border rounded-lg p-2.5" required />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Description</label>
+                <textarea name="description" value={form.description} onChange={handleChange} className="w-full border rounded-lg p-2.5" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Price</label>
+                  <input type="number" name="price" value={form.price} onChange={handleChange} className="w-full border rounded-lg p-2.5" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Initial Stock</label>
+                  <input type="number" name="stockQuantity" value={form.stockQuantity} onChange={handleChange} className="w-full border rounded-lg p-2.5" required />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Vendor</label>
+                <select name="vendorId" value={form.vendorId} onChange={handleChange} className="w-full border rounded-lg p-2.5" required>
+                  <option value="">Select Vendor</option>
+                  {vendors.map(v => (
+                    <option key={v.id} value={v.id}>{v.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex justify-end gap-3 mt-6">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-600 font-medium">Cancel</button>
+                <button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium">
+                  {loading ? "Saving..." : "Save Part"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Purchase Modal */}
+      {purchaseModal.isOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 overflow-hidden">
+            <h2 className="text-xl font-bold text-slate-800 mb-4">Purchase Stock</h2>
+            <form onSubmit={handlePurchase} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Quantity to Add</label>
+                <input 
+                    type="number" 
+                    value={purchaseModal.quantity} 
+                    onChange={(e) => setPurchaseModal({...purchaseModal, quantity: Number(e.target.value)})} 
+                    className="w-full border rounded-lg p-2.5" 
+                    min="1"
+                    required 
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <button type="button" onClick={() => setPurchaseModal({isOpen: false})} className="px-4 py-2 text-slate-600 font-medium">Cancel</button>
+                <button type="submit" className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg font-medium">Confirm Purchase</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
