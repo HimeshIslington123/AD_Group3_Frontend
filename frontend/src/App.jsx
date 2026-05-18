@@ -1,23 +1,12 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./LoginPages/Login";
 import Register from "./LoginPages/Register";
 import InventoryManagement from "./AdminPages/InventoryManagement";
 import AdminDashboard from "./AdminPages/AdminDashboard";
 import AdminLayout from "./AdminPages/AdminLayout";
-import Dashboard from "./AdminPages/AdminDashboard";
 import VendorManagement from "./AdminPages/VendorManagement";
 import StaffManagement from "./AdminPages/StaffManagement";
-import Home from "./StaticPages/Home";
-import UserDashboard from "./UserPages/Userdashboard";
-import UserLayout from "./UserPages/Userlayout";
-import BookAppointment from "./UserPages/BookAppointment";
-import RequestParts from "./UserPages/RequestParts";
-import HistoryPage from "./UserPages/HistoryPage";
-import LoyaltyPage from "./UserPages/LoyaltyPage";
-import AddCustomer from "./StaffPages/AddCustomer";
-import SalesInvoice from "./StaffPages/SalesInvoice";
-import StaffLayout from "./StaffPages/StaffLayout";
-import CustomerDetails from "./StaffPages/CustomerDetails";
+import PurchaseInvoices from "./AdminPages/PurchaseInvoices";
 
 function App() {
   return (
@@ -25,36 +14,20 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/home" element={<Home />} />
-
-        <Route path="/inventorymanagement" element={<InventoryManagement />} />
+        <Route path="/" element={<Navigate to="/login" />} />
 
         {/* Layout Route */}
         <Route path="/admin" element={<AdminLayout />}>
-          {/* Nested Pages */}
-          <Route index element={<Dashboard />} />
-          <Route path="inventorymanagement" element={<InventoryManagement />} />
-          <Route path="vendormanagement" element={<VendorManagement />} />
+          {/* Nested Pages - The 4 required features + Dashboard */}
+          <Route index element={<AdminDashboard />} />
           <Route path="staffmanagement" element={<StaffManagement />} />
+          <Route path="inventorymanagement" element={<InventoryManagement />} />
+          <Route path="purchaseinvoices" element={<PurchaseInvoices />} />
+          <Route path="vendormanagement" element={<VendorManagement />} />
         </Route>
 
-        <Route path="/user" element={<UserLayout />}>
-          <Route index element={<UserDashboard />} />
-          <Route path="bookappointment" element={<BookAppointment />} />
-          <Route path="requestpart" element={<RequestParts />} />
-          <Route path="history" element={<HistoryPage />} />
-          <Route path="loyalty" element={<LoyaltyPage />} />
-        </Route>
-
-
-        <Route path="/staff" element={<StaffLayout />}>
-          <Route index path="addcustomer" element={<AddCustomer />} />
-             <Route path="salesinvoice" element={<SalesInvoice />} />
-                <Route path="customerdetails" element={<CustomerDetails />} />
-         
-        </Route>
-
-
+        {/* Redirect any other unknown route to login */}
+        <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );
