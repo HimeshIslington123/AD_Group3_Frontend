@@ -122,161 +122,172 @@ const StaffManagement = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-800">Staff Management</h1>
-          <p className="text-slate-500">Manage your system staff and their roles</p>
+    <div className="p-6 min-h-screen bg-slate-50">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-800">Staff Management</h1>
+            <p className="text-slate-500 mt-1">Manage your system staff, roles, and permissions</p>
+          </div>
+          <button
+            onClick={() => {
+              setIsEdit(false);
+              setForm({ fullName: "", email: "", password: "", position: "" });
+              setIsModalOpen(true);
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-semibold transition-all shadow-sm hover:shadow-md flex items-center gap-2"
+          >
+            <span className="text-xl">+</span> Add Staff
+          </button>
         </div>
-        <button
-          onClick={() => {
-            setIsEdit(false);
-            setForm({ fullName: "", email: "", password: "", position: "" });
-            setIsModalOpen(true);
-          }}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-        >
-          + Add Staff
-        </button>
-      </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
-              <th className="p-4 font-semibold text-slate-700">Full Name</th>
-              <th className="p-4 font-semibold text-slate-700">Email</th>
-              <th className="p-4 font-semibold text-slate-700">Position</th>
-              <th className="p-4 font-semibold text-slate-700 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {staff.length === 0 ? (
-              <tr>
-                <td colSpan="4" className="p-10 text-center text-slate-500">
-                  No staff members found.
-                </td>
-              </tr>
-            ) : (
-              staff.map((s) => (
-                <tr key={s.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="p-4 font-medium text-slate-800">{s.fullName}</td>
-                  <td className="p-4 text-slate-600">{s.email}</td>
-                  <td className="p-4">
-                    <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-semibold">
-                      {s.position}
-                    </span>
-                  </td>
-                  <td className="p-4 text-right">
-                    <button
-                      onClick={() => handleEdit(s)}
-                      className="text-blue-600 hover:text-blue-800 mr-4 font-medium"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(s.id)}
-                      className="text-red-600 hover:text-red-800 font-medium"
-                    >
-                      Delete
-                    </button>
-                  </td>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200">
+                  <th className="p-4 font-semibold text-slate-700">Full Name</th>
+                  <th className="p-4 font-semibold text-slate-700">Email Address</th>
+                  <th className="p-4 font-semibold text-slate-700">Position</th>
+                  <th className="p-4 font-semibold text-slate-700 text-right">Actions</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {staff.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="p-10 text-center text-slate-500">
+                      <div className="flex flex-col items-center gap-2">
+                        <span className="text-4xl">👥</span>
+                        <p>No staff members found.</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  staff.map((s) => (
+                    <tr key={s.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-4">
+                        <div className="font-medium text-slate-800">{s.fullName}</div>
+                      </td>
+                      <td className="p-4 text-slate-600">{s.email}</td>
+                      <td className="p-4">
+                        <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                          {s.position}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right">
+                        <div className="flex justify-end gap-3">
+                          <button
+                            onClick={() => handleEdit(s)}
+                            className="text-blue-600 hover:text-blue-800 font-semibold text-sm transition-colors"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(s.id)}
+                            className="text-red-600 hover:text-red-800 font-semibold text-sm transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-slate-800">
-                {isEdit ? "Edit Staff Member" : "Add New Staff"}
-              </h2>
-              <button 
-                onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 text-2xl"
-              >
-                &times;
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Full Name</label>
-                <input
-                  name="fullName"
-                  value={form.fullName}
-                  onChange={handleChange}
-                  placeholder="e.g. John Doe"
-                  className="w-full border border-slate-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                  required
-                />
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h2 className="text-xl font-bold text-slate-800">
+                  {isEdit ? "Edit Staff Member" : "Add New Staff"}
+                </h2>
+                <button 
+                  onClick={() => setIsModalOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 text-2xl transition-colors"
+                >
+                  &times;
+                </button>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Email</label>
-                <input
-                  name="email"
-                  type="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  placeholder="staff@example.com"
-                  className="w-full border border-slate-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:bg-slate-50 disabled:text-slate-500"
-                  required
-                  disabled={isEdit}
-                />
-              </div>
-
-              {!isEdit && (
+              <form onSubmit={handleSubmit} className="p-6 space-y-5">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1">Password</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Full Name</label>
                   <input
-                    name="password"
-                    type="password"
-                    value={form.password}
+                    name="fullName"
+                    value={form.fullName}
                     onChange={handleChange}
-                    placeholder="••••••••"
-                    className="w-full border border-slate-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    placeholder="e.g. John Doe"
+                    className="w-full border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-slate-50"
                     required
                   />
                 </div>
-              )}
 
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Position</label>
-                <input
-                  name="position"
-                  value={form.position}
-                  onChange={handleChange}
-                  placeholder="e.g. Sales Manager"
-                  className="w-full border border-slate-200 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                  required
-                />
-              </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Email Address</label>
+                  <input
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="staff@example.com"
+                    className="w-full border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-slate-50 disabled:opacity-60"
+                    required
+                    disabled={isEdit}
+                  />
+                </div>
 
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
-                >
-                  {loading ? "Saving..." : isEdit ? "Update Staff" : "Add Staff"}
-                </button>
-              </div>
-            </form>
+                {!isEdit && (
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">Password</label>
+                    <input
+                      name="password"
+                      type="password"
+                      value={form.password}
+                      onChange={handleChange}
+                      placeholder="••••••••"
+                      className="w-full border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-slate-50"
+                      required
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Position</label>
+                  <input
+                    name="position"
+                    value={form.position}
+                    onChange={handleChange}
+                    placeholder="e.g. Sales Manager"
+                    className="w-full border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-slate-50"
+                    required
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-6 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl font-bold transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-xl font-bold transition-all disabled:opacity-50 shadow-blue-500/20 shadow-lg active:scale-95"
+                  >
+                    {loading ? "Saving..." : isEdit ? "Update Staff" : "Add Staff"}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
