@@ -8,6 +8,7 @@ import {
   FileText,
   Plus,
   LogOut,
+  PiggyBank ,History ,
 } from "lucide-react";
 
 const AdminLayout = () => {
@@ -23,8 +24,10 @@ const AdminLayout = () => {
     { name: "Staff Management", path: "/admin/staffmanagement", icon: Users },
     { name: "Inventory", path: "/admin/inventorymanagement", icon: Boxes },
     { name: "Vendors", path: "/admin/vendormanagement", icon: Truck },
-    { name: "Reports", path: "/admin/reports", icon: BarChart3 },
-    { name: "Invoices", path: "/admin/invoices", icon: FileText },
+ 
+    { name: "Invoices", path: "/admin/purchaseinovice", icon: PiggyBank },
+        { name: "history", path: "/admin/history", icon: History },
+            { name: "report", path: "/admin/report", icon: FileText },
   ];
 
   return (
@@ -71,10 +74,7 @@ const AdminLayout = () => {
         {/* Bottom Actions */}
         <div className="p-4 border-t space-y-2">
 
-          <button className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg font-semibold">
-            <Plus size={18} />
-            Add Part
-          </button>
+        
 
           <button
             onClick={handleLogout}

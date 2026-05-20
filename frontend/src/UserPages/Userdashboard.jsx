@@ -1,108 +1,296 @@
-import { Car, Wrench, Star, History, Plus } from "lucide-react";
+import {
+  Car,
+  Wrench,
+  Star,
+  History,
+  Plus,
+  Calendar,
+  ShieldCheck,
+  Gauge,
+  ArrowRight,
+} from "lucide-react";
 
-const vehicles = [
-  {
-    name: "Tesla Model 3",
-    status: "Healthy",
-    img: "https://images.unsplash.com/photo-1619767886558-efdc259cde1a",
-  },
-  {
-    name: "Range Rover Sport",
-    status: "Service Soon",
-    img: "https://images.unsplash.com/photo-1619767886607-7c1f7d2f0b8c",
-  },
-];
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
+
+const PROFILE_API = "http://localhost:5216/api/customer/my";
 
 const UserDashboard = () => {
-  return (
-    <div className="space-y-6">
+  const navigate = useNavigate();
 
-      {/* TOP ACTION CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+  const [customer, setCustomer] = useState(null);
+  const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-        <ActionCard title="Add Vehicle" icon={<Plus />} />
-        <ActionCard title="Book Service" icon={<Wrench />} />
-        <ActionCard title="Request Part" icon={<Car />} />
-        <ActionCard title="Write Review" icon={<Star />} />
-        <ActionCard title="View History" icon={<History />} />
+  // FETCH CUSTOMER + VEHICLES
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(PROFILE_API, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setCustomer(res.data);
+      setVehicles(res.data.vehicles || []);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const quickActions = [
+    {
+      title: "Add Vehicle",
+      icon: <Plus size={20} />,
+      path: "/user/profile",
+      color: "bg-blue-50 text-blue-600",
+    },
+    {
+      title: "Book Service",
+      icon: <Wrench size={20} />,
+      path: "/user/bookappointment",
+      color: "bg-orange-50 text-orange-600",
+    },
+    {
+      title: "Request Part",
+      icon: <Car size={20} />,
+      path: "/user/requestpart",
+      color: "bg-green-50 text-green-600",
+    },
+    {
+      title: "View History",
+      icon: <History size={20} />,
+      path: "/user/history",
+      color: "bg-purple-50 text-purple-600",
+    },
+    {
+      title: "My Profile",
+      icon: <Star size={20} />,
+      path: "/user/profile",
+      color: "bg-pink-50 text-pink-600",
+    },
+  ];
+
+  if (loading) {
+    return (
+      <div className="p-10 text-center text-gray-500">
+        Loading dashboard...
       </div>
+    );
+  }
 
-      {/* GARAGE SECTION */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">My Garage</h2>
+  return (
+    <div className="space-y-8">
+      {/* HERO */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-8 text-white shadow-lg">
+        <div className="flex flex-col md:flex-row justify-between gap-6">
+          <div>
+            <p className="text-sm opacity-90">Welcome back 👋</p>
 
-        <div className="grid md:grid-cols-2 gap-5">
+            <h1 className="text-3xl font-bold mt-1">
+              {customer?.fullName}
+            </h1>
 
-          {vehicles.map((v, i) => (
-            <div key={i} className="bg-white rounded-xl shadow-sm p-4">
+            <p className="mt-2 text-blue-100">
+              Manage your vehicles, appointments, and service history
+            </p>
+          </div>
 
-              <img
-                src={v.img}
-                className="h-40 w-full object-cover rounded-lg"
-              />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white/10 backdrop-blur rounded-2xl p-4 min-w-[130px]">
+              <p className="text-sm text-blue-100">Vehicles</p>
 
-              <div className="mt-3 flex justify-between items-center">
-                <h3 className="font-semibold">{v.name}</h3>
-
-                <span className={`text-xs px-2 py-1 rounded-full ${
-                  v.status === "Healthy"
-                    ? "bg-green-100 text-green-600"
-                    : "bg-orange-100 text-orange-600"
-                }`}>
-                  {v.status}
-                </span>
-              </div>
-
-              <button className="mt-3 w-full bg-blue-600 text-white py-2 rounded-lg">
-                View Details
-              </button>
+              <h2 className="text-3xl font-bold mt-1">
+                {vehicles.length}
+              </h2>
             </div>
-          ))}
 
+            <div className="bg-white/10 backdrop-blur rounded-2xl p-4 min-w-[130px]">
+              <p className="text-sm text-blue-100">Status</p>
+
+              <h2 className="text-lg font-semibold mt-2">
+                Active Customer
+              </h2>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* INFO WIDGETS */}
-      <div className="grid md:grid-cols-3 gap-4">
+      {/* ACTIONS */}
+      <div>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">Quick Actions</h2>
+        </div>
 
-        <InfoCard
-          title="AI Wear Prediction"
-          value="Brake pads: 300 miles left"
-          color="bg-orange-50 text-orange-600"
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {quickActions.map((item, i) => (
+            <button
+              key={i}
+              onClick={() => navigate(item.path)}
+              className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition text-left"
+            >
+              <div
+                className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${item.color}`}
+              >
+                {item.icon}
+              </div>
 
-        <InfoCard
-          title="Rewards"
-          value="1,800 points"
-          color="bg-blue-50 text-blue-600"
-        />
+              <h3 className="font-semibold">{item.title}</h3>
 
-        <InfoCard
-          title="Balance"
-          value="$0 Paid in full"
-          color="bg-green-50 text-green-600"
-        />
-
+              <div className="flex items-center gap-1 text-sm text-gray-500 mt-2">
+                Open
+                <ArrowRight size={14} />
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
+
+      {/* VEHICLES */}
+      <div>
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="text-xl font-bold">My Garage</h2>
+
+          <button
+            onClick={() => navigate("/user/profile")}
+            className="text-blue-600 text-sm font-medium"
+          >
+            Manage Vehicles
+          </button>
+        </div>
+
+        {vehicles.length === 0 ? (
+          <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
+            <Car size={40} className="mx-auto text-gray-300 mb-3" />
+
+            <h3 className="font-semibold text-lg">No Vehicles Added</h3>
+
+            <p className="text-gray-500 text-sm mt-1">
+              Add your first vehicle from profile page
+            </p>
+
+            <button
+              onClick={() => navigate("/user/profile")}
+              className="mt-5 bg-blue-600 text-white px-5 py-2 rounded-xl"
+            >
+              Add Vehicle
+            </button>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {vehicles.map((v) => (
+              <div
+                key={v.id}
+                className="bg-white rounded-3xl shadow-sm overflow-hidden hover:shadow-lg transition"
+              >
+                {/* CAR IMAGE */}
+                <img
+                  src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7"
+                  alt="vehicle"
+                  className="h-48 w-full object-cover"
+                />
+
+                <div className="p-5">
+                  {/* TOP */}
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-xl font-bold">
+                        {v.brand} {v.model}
+                      </h3>
+
+                      <p className="text-sm text-gray-500 mt-1">
+                        {v.vehicleNumber}
+                      </p>
+                    </div>
+
+                    <span className="bg-green-100 text-green-600 text-xs px-3 py-1 rounded-full">
+                      Active
+                    </span>
+                  </div>
+
+                  {/* DETAILS */}
+                  <div className="grid grid-cols-2 gap-4 mt-5">
+                    <VehicleInfo
+                      icon={<Calendar size={16} />}
+                      label="Year"
+                      value={v.year}
+                    />
+
+                    <VehicleInfo
+                      icon={<Car size={16} />}
+                      label="Type"
+                      value={v.type}
+                    />
+
+                    <VehicleInfo
+                      icon={<Gauge size={16} />}
+                      label="Model"
+                      value={v.model}
+                    />
+
+                    <VehicleInfo
+                      icon={<ShieldCheck size={16} />}
+                      label="Brand"
+                      value={v.brand}
+                    />
+                  </div>
+
+                  {/* BUTTONS */}
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={() => navigate("/user/bookappointment")}
+                      className="flex-1 bg-blue-600 text-white py-2 rounded-xl text-sm font-medium"
+                    >
+                      Book Service
+                    </button>
+
+                    <button
+                      onClick={() => navigate("/user/requestpart")}
+                      className="flex-1 border border-gray-200 py-2 rounded-xl text-sm font-medium"
+                    >
+                      Request Part
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+     
     </div>
   );
 };
 
 export default UserDashboard;
 
-/* ---------- Components ---------- */
+/* ---------- COMPONENTS ---------- */
 
-const ActionCard = ({ title, icon }) => (
-  <div className="bg-white rounded-xl p-4 shadow-sm flex items-center gap-3 hover:shadow-md transition">
-    <div className="text-blue-600">{icon}</div>
-    <p className="text-sm font-medium">{title}</p>
+const VehicleInfo = ({ icon, label, value }) => (
+  <div className="bg-gray-50 rounded-xl p-3">
+    <div className="flex items-center gap-2 text-gray-500 text-sm">
+      {icon}
+      {label}
+    </div>
+
+    <p className="font-semibold mt-1">{value}</p>
   </div>
 );
 
 const InfoCard = ({ title, value, color }) => (
-  <div className={`p-4 rounded-xl ${color}`}>
-    <h4 className="text-sm font-semibold">{title}</h4>
-    <p className="text-xs mt-1">{value}</p>
+  <div className={`p-5 rounded-2xl ${color}`}>
+    <h4 className="font-semibold">{title}</h4>
+
+    <p className="text-sm mt-2">{value}</p>
   </div>
 );

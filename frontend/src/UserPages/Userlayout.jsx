@@ -7,6 +7,7 @@ import {
   History,
   Star,
   LogOut,
+  User2Icon
 } from "lucide-react";
 
 const UserLayout = () => {
@@ -22,7 +23,8 @@ const UserLayout = () => {
     { name: "Book Appointment", path: "/user/bookappointment", icon: Car },
     { name: "Request part", path: "/user/requestpart", icon: Wrench },
     { name: "Purchase History", path: "/user/history", icon: ShoppingCart },
-    { name: "Loyalty", path: "/user/loyalty", icon: Star },
+       { name: "Profile", path: "/user/profile", icon: User2Icon },
+         { name: "ai", path: "/user/ai", icon: User2Icon },
   ];
 
   return (
@@ -84,7 +86,7 @@ const UserLayout = () => {
         {/* HEADER */}
         <header className="h-16 bg-white border-b flex items-center justify-between px-6">
           <h2 className="font-semibold text-slate-700">
-            Welcome Back 👋
+            Welcome Back 
           </h2>
 
           <div className="text-sm text-slate-500">

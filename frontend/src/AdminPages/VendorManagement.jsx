@@ -1,26 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
 const VendorManagement = () => {
-  const [vendors, setVendors] = useState([
-    {
-      id: 1,
-      name: "Global Auto Parts Ltd",
-      email: "contact@globalauto.com",
-      phone: "9801234567",
-      location: "Kathmandu",
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "Prime Spare Suppliers",
-      email: "info@primespare.com",
-      phone: "9811122233",
-      location: "Lalitpur",
-      status: "Inactive",
-    },
-  ]);
+  const API_URL = "http://localhost:5216/api/vendor";
+  const token = localStorage.getItem("token");
 
+  const [vendors, setVendors] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null); 
 
   const [form, setForm] = useState({
     name: "",
@@ -30,33 +17,118 @@ const VendorManagement = () => {
     status: "Active",
   });
 
+
+  const fetchVendors = async () => {
+    try {
+      const res = await axios.get(API_URL, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setVendors(res.data);
+    } catch (err) {
+      console.error(err);
+      alert("Error loading vendors");
+    }
+  };
+
+  useEffect(() => {
+    fetchVendors();
+  }, []);
+
+
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleAddVendor = (e) => {
+
+  const handleAddVendor = async (e) => {
     e.preventDefault();
 
-    const newVendor = {
-      id: Date.now(),
-      ...form,
-    };
+    try {
+      if (editingId) {
 
-    setVendors([...vendors, newVendor]);
+        await axios.put(
+          `${API_URL}/${editingId}`,
+          {
+            name: form.name,
+            email: form.email,
+            phone: form.phone,
+            address: form.location,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      } else {
+     
+        await axios.post(
+          API_URL,
+          {
+            name: form.name,
+            email: form.email,
+            phone: form.phone,
+            address: form.location,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      }
 
+      fetchVendors();
+
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        location: "",
+        status: "Active",
+      });
+
+      setEditingId(null); // reset
+      setIsModalOpen(false);
+
+    } catch (err) {
+      console.error(err);
+      alert("Error saving vendor");
+    }
+  };
+
+
+  const handleEdit = (vendor) => {
     setForm({
-      name: "",
-      email: "",
-      phone: "",
-      location: "",
+      name: vendor.name,
+      email: vendor.email,
+      phone: vendor.phone,
+      location: vendor.address,
       status: "Active",
     });
 
-    setIsModalOpen(false);
+    setEditingId(vendor.id);
+    setIsModalOpen(true);
   };
 
-  const handleDelete = (id) => {
-    setVendors(vendors.filter((v) => v.id !== id));
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${API_URL}/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      fetchVendors();
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting vendor");
+    }
   };
 
   return (
@@ -74,35 +146,34 @@ const VendorManagement = () => {
         </div>
 
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setIsModalOpen(true);
+            setEditingId(null);
+          }}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium"
         >
           + Add Vendor
         </button>
       </div>
 
-      {/* STATS */}
+      {/* STATS (UNCHANGED) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
         <div className="bg-white p-6 rounded-xl border shadow-sm">
-          <p className="text-sm text-slate-500">Total Vendors</p>
+          <p>Total Vendors</p>
           <h2 className="text-2xl font-bold">{vendors.length}</h2>
         </div>
 
         <div className="bg-white p-6 rounded-xl border shadow-sm">
-          <p className="text-sm text-slate-500">Active Vendors</p>
+          <p>Active Vendors</p>
           <h2 className="text-2xl font-bold text-green-600">
-            {vendors.filter(v => v.status === "Active").length}
+            {vendors.length}
           </h2>
         </div>
 
         <div className="bg-white p-6 rounded-xl border shadow-sm">
-          <p className="text-sm text-slate-500">Inactive Vendors</p>
-          <h2 className="text-2xl font-bold text-red-500">
-            {vendors.filter(v => v.status === "Inactive").length}
-          </h2>
+          <p>Inactive Vendors</p>
+          <h2 className="text-2xl font-bold text-red-500">0</h2>
         </div>
-
       </div>
 
       {/* TABLE */}
@@ -110,38 +181,33 @@ const VendorManagement = () => {
 
         <table className="w-full text-left">
 
-          <thead className="bg-slate-50 text-sm text-slate-500">
+          <thead className="bg-slate-50">
             <tr>
               <th className="p-4">Vendor Name</th>
               <th className="p-4">Email</th>
               <th className="p-4">Phone</th>
-              <th className="p-4">Location</th>
-              <th className="p-4">Status</th>
+              <th className="p-4">Address</th>
               <th className="p-4">Actions</th>
             </tr>
           </thead>
 
           <tbody>
             {vendors.map((vendor) => (
-              <tr key={vendor.id} className="border-t hover:bg-slate-50">
+              <tr key={vendor.id} className="border-t">
 
-                <td className="p-4 font-medium">{vendor.name}</td>
+                <td className="p-4">{vendor.name}</td>
                 <td className="p-4">{vendor.email}</td>
                 <td className="p-4">{vendor.phone}</td>
-                <td className="p-4">{vendor.location}</td>
+                <td className="p-4">{vendor.address}</td>
 
                 <td className="p-4">
-                  <span className={`px-2 py-1 text-xs rounded ${
-                    vendor.status === "Active"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-600"
-                  }`}>
-                    {vendor.status}
-                  </span>
-                </td>
+                  <button
+                    onClick={() => handleEdit(vendor)}
+                    className="text-blue-600 mr-3"
+                  >
+                    Edit
+                  </button>
 
-                <td className="p-4">
-                  <button className="text-blue-600 mr-3">Edit</button>
                   <button
                     onClick={() => handleDelete(vendor.id)}
                     className="text-red-600"
@@ -157,91 +223,69 @@ const VendorManagement = () => {
         </table>
       </div>
 
-      {/* ================= MODAL ================= */}
+      {/* MODAL (same UI, just title changes) */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
 
-          <div className="bg-white w-[500px] rounded-xl p-6 shadow-lg">
+          <div className="bg-white w-[500px] rounded-xl p-6">
 
             <h2 className="text-xl font-bold mb-4">
-              Add New Vendor
+              {editingId ? "Edit Vendor" : "Add Vendor"}
             </h2>
 
             <form onSubmit={handleAddVendor} className="space-y-4">
 
-              {/* NAME */}
               <input
-                type="text"
                 name="name"
-                placeholder="Vendor Name"
+                placeholder="Name"
                 value={form.name}
                 onChange={handleChange}
-                className="w-full border p-3 rounded-lg"
+                className="w-full border p-3 rounded"
                 required
               />
 
-              {/* EMAIL */}
               <input
-                type="email"
                 name="email"
                 placeholder="Email"
                 value={form.email}
                 onChange={handleChange}
-                className="w-full border p-3 rounded-lg"
+                className="w-full border p-3 rounded"
                 required
               />
 
-              {/* PHONE */}
               <input
-                type="text"
                 name="phone"
-                placeholder="Phone Number"
+                placeholder="Phone"
                 value={form.phone}
                 onChange={handleChange}
-                className="w-full border p-3 rounded-lg"
+                className="w-full border p-3 rounded"
                 required
               />
 
-              {/* LOCATION */}
               <input
-                type="text"
                 name="location"
-                placeholder="Location"
+                placeholder="Address"
                 value={form.location}
                 onChange={handleChange}
-                className="w-full border p-3 rounded-lg"
+                className="w-full border p-3 rounded"
                 required
               />
 
-              {/* STATUS */}
-              <select
-                name="status"
-                value={form.status}
-                onChange={handleChange}
-                className="w-full border p-3 rounded-lg"
-              >
-                <option>Active</option>
-                <option>Inactive</option>
-              </select>
-
-              {/* BUTTONS */}
-              <div className="flex justify-end gap-3 pt-2">
-
+              <div className="flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border rounded-lg"
+                  className="border px-4 py-2 rounded"
                 >
                   Cancel
                 </button>
 
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                  className="bg-blue-600 text-white px-4 py-2 rounded"
                 >
-                  Save Vendor
+                  {editingId ? "Update" : "Save"}
                 </button>
-
               </div>
 
             </form>

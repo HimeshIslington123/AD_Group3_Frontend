@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 const BookAppointment = () => {
   const [form, setForm] = useState({
-    car: "",
+    vehicleId: "",
     date: "",
     time: "",
     serviceType: "",
@@ -10,22 +11,80 @@ const BookAppointment = () => {
     description: "",
   });
 
+  const [vehicles, setVehicles] = useState([]);
+
+  // 🔥 Fetch logged-in user's vehicles
+  useEffect(() => {
+    const fetchCustomer = async () => {
+      try {
+ 
+const token = localStorage.getItem("token");
+console.log("TOKEN:", token);
+        const res = await axios.get(
+          "http://localhost:5216/api/customer/my",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setVehicles(res.data.vehicles);
+      } catch (err) {
+        console.error("Error fetching vehicles:", err);
+      }
+    };
+
+    fetchCustomer();
+  }, []);
+
+  // Handle input change
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  // 🔥 Submit appointment
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Appointment Data:", form);
-    alert("Appointment Requested Successfully!");
-  };
 
-  const cars = [
-    "Toyota Corolla",
-    "Honda Civic",
-    "Hyundai Creta",
-    "Suzuki Swift",
-  ];
+    const token = localStorage.getItem("token");
+
+    const payload = {
+      vehicleId: form.vehicleId,
+      date: new Date(`${form.date}T${form.time}`),
+      serviceType: form.serviceType,
+      description: form.description,
+      searchParts: form.searchParts,
+    };
+
+    try {
+      await axios.post(
+        "http://localhost:5216/api/appointment",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert("Appointment booked successfully ");
+
+      // reset form
+      setForm({
+        vehicleId: "",
+        date: "",
+        time: "",
+        serviceType: "",
+        searchParts: "",
+        description: "",
+      });
+
+    } catch (err) {
+      console.error("Error booking appointment:", err);
+      alert("Failed to book appointment ❌");
+    }
+  };
 
   const services = [
     "General Service",
@@ -36,7 +95,7 @@ const BookAppointment = () => {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       {/* HEADER */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-800">
@@ -55,22 +114,22 @@ const BookAppointment = () => {
         {/* Row 1 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-          {/* Car Select */}
+          {/* Vehicle Dropdown */}
           <div>
             <label className="text-sm font-medium text-slate-600">
-              Select Car
+              Select Vehicle
             </label>
             <select
-              name="car"
-              value={form.car}
+              name="vehicleId"
+              value={form.vehicleId}
               onChange={handleChange}
               className="w-full mt-1 border rounded-lg p-3 focus:ring-2 focus:ring-blue-400"
               required
             >
-              <option value="">Choose your car</option>
-              {cars.map((c) => (
-                <option key={c} value={c}>
-                  {c}
+              <option value="">Choose your vehicle</option>
+              {vehicles.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.brand} {v.model} ({v.vehicleNumber})
                 </option>
               ))}
             </select>
@@ -132,7 +191,7 @@ const BookAppointment = () => {
           </div>
         </div>
 
-        {/* SEARCH PARTS */}
+        {/* Search Parts */}
         <div>
           <label className="text-sm font-medium text-slate-600">
             Search Car Parts (Optional)
@@ -142,31 +201,30 @@ const BookAppointment = () => {
             name="searchParts"
             value={form.searchParts}
             onChange={handleChange}
-            placeholder="e.g. Brake pads, Engine oil, Air filter..."
+            placeholder="e.g. Brake pads, Engine oil..."
             className="w-full mt-1 border rounded-lg p-3 focus:ring-2 focus:ring-blue-400"
           />
         </div>
 
-        {/* DESCRIPTION */}
+        {/* Description */}
         <div>
           <label className="text-sm font-medium text-slate-600">
-            Problem / Request Description
+            Problem / Description
           </label>
           <textarea
             name="description"
             value={form.description}
             onChange={handleChange}
             rows="4"
-            placeholder="Describe your vehicle issue or request..."
             className="w-full mt-1 border rounded-lg p-3 focus:ring-2 focus:ring-blue-400"
             required
           />
         </div>
 
-        {/* BUTTON */}
+        {/* Button */}
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition"
+          className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700"
         >
           Request Appointment
         </button>

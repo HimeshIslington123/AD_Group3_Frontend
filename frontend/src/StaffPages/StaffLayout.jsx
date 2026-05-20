@@ -27,14 +27,14 @@ const StaffLayout = () => {
     // 7 - sell parts + invoice
     { name: "Sales & Invoice", path: "/staff/salesinvoice", icon: ShoppingCart },
 
-    // 8 - view customer details/history
-    { name: "Customers", path: "/staff/customers", icon: Users },
 
-    // 9 - reports
-    { name: "Reports", path: "/staff/reports", icon: FileText },
+
 
     // 10 - search customers
     { name: "Customer details", path: "/staff/customerdetails", icon: Search },
+
+       { name: "History", path: "/staff/staffhistory", icon: Search },
+
   ];
 
   return (
@@ -97,7 +97,7 @@ const StaffLayout = () => {
         {/* HEADER */}
         <header className="h-16 bg-white border-b flex items-center justify-between px-6">
           <h2 className="font-semibold text-slate-700">
-            Staff Dashboard 👨‍🔧
+            Staff Dashboard 
           </h2>
 
           <div className="text-sm text-slate-500">
